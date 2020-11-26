@@ -31,10 +31,9 @@ public class LancamentoDAO implements InterfaceDAO<Lancamento> {
         }
     }
 
-    @Override
-    public void deletar(Lancamento lancamento) {
+    public void deletarr(Integer id) {
         try {
-            String query = "DELETE FROM lancamento WHERE idLancamento = " + lancamento.getIdLancamento();
+            String query = "DELETE FROM lancamento WHERE idLancamento = " + id;
             UtilBD.alterarBD(query);
         } catch (SQLException e) {
             System.err.println("Não foi possível remover a pessoa no banco!");
@@ -179,5 +178,10 @@ public class LancamentoDAO implements InterfaceDAO<Lancamento> {
             System.err.println("Não foi possível buscar os dados do banco!");
         }
         return null;
+    }
+
+    @Override
+    public void deletar(Lancamento referencia) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
