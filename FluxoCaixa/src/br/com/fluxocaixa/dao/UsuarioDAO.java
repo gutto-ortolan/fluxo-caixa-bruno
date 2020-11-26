@@ -76,6 +76,40 @@ public class UsuarioDAO implements InterfaceDAO<Usuario> {
         }
         return null;
     }
+    
+    public Usuario buscarUsuario(String nome, String senha){
+        try {
+            Connection bd = UtilBD.getConexao();
+            Statement stm = bd.createStatement();
+            String query = "SELECT * FROM usuario where login = '"+nome+"' and senha = '"+senha+"' ";
+
+            try (ResultSet rs = stm.executeQuery(query)) {
+
+                List<Usuario> usuarios = new ArrayList<Usuario>();
+
+                while (rs.next()) {
+                    Usuario usuario = new Usuario(
+                            rs.getInt("idUsuario"),
+                            rs.getString("login"),
+                            rs.getString("senha"),
+                            rs.getInt("idPessoa")
+                    );
+                    usuarios.add(usuario);
+                }
+
+                if(usuarios != null && !usuarios.isEmpty()){
+                    return usuarios.get(0);
+                }
+                
+            } catch (SQLException e) {
+                System.err.println("Falha ao tentar obter o conjunto resultado!");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Não foi possível buscar os dados do banco!");
+        }
+        return null;
+    }
 
     @Override
     public Usuario buscarId(Integer id) {

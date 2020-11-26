@@ -1,17 +1,20 @@
 package br.com.fluxocaixa.view;
 
 import br.com.fluxocaixa.util.GerenteDeJanelas;
+import javax.swing.JOptionPane;
 
 public class TelaPrincipal extends javax.swing.JFrame {
     
     GerenteDeJanelas gerenteDeJanelas;
-
+    
     public TelaPrincipal() {
         initComponents();
         this.gerenteDeJanelas = new GerenteDeJanelas(jDesktopPane1);
         setLocationRelativeTo(null);
+        
+        gerenteDeJanelas.abrirJanelas(LoginForm1.getInstancia());
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

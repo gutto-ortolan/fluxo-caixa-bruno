@@ -208,8 +208,8 @@ public class NovoUsuarioForm extends javax.swing.JDialog {
         }
 
         Usuario usuario = new Usuario(
-                txfLogin.getText().toUpperCase(),
-                txfSenha.getText().toUpperCase()
+                txfLogin.getText(),
+                txfSenha.getText()
         );
 
         if (acao.equals("I")) {

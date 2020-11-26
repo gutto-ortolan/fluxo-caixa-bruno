@@ -2,8 +2,15 @@ package br.com.fluxocaixa.view;
 
 import br.com.fluxocaixa.dao.LancamentoDAO;
 import br.com.fluxocaixa.model.Lancamento;
+import br.com.fluxocaixa.model.Usuario;
 import br.com.fluxocaixa.view.adicionar.NovoLancamentoForm;
+import com.toedter.calendar.JDateChooser;
 import java.awt.Dimension;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -19,6 +26,10 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
     private static LancamentoForm testeframe;
     
     private LancamentoDAO lancamentoDAO = new LancamentoDAO();
+    
+    private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    
+    private final String defaultFormatDate = ("dd/MM/yyyy");
 
     public static LancamentoForm getInstancia() {
         testeframe = new LancamentoForm();
@@ -28,8 +39,13 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
     public LancamentoForm() {
         initComponents();
         setResizable(false);
-        tabela.setModel((new DefaultTableModel(null, new Object[]{"Código", "Descrição", "Valor", "Movimentação", "Tipo Pagamento"})));
+        tabela.setModel((new DefaultTableModel(null, new Object[]{"Código", "Descrição", "Valor", "Data", "Movimentação"})));
         tamanho_colunas();
+
+        inicio.setDate(getLimiteInicial(new Date(), Calendar.MONTH));
+        fim.setDate(new Date());
+        
+        
         readJTable();
     }
 
@@ -37,13 +53,33 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
         tabelaModelo = (DefaultTableModel) tabela.getModel();
         tabelaModelo.setNumRows(0);
 
-        for (Lancamento lancamento : lancamentoDAO.buscar()) {
+        for (Lancamento lancamento : lancamentoDAO.buscarData(inicio.getDate(), fim.getDate())) {
             tabelaModelo.addRow(new Object[]{
                 lancamento.getIdLancamento(),
                 lancamento.getDescricao(),
-                lancamento.getValor()
+                lancamento.getValor(),
+                sdf.format(lancamento.getDtLancamento()),
+                lancamento.getMovimentacao()
             });
         }
+    }
+    
+    public Date getLimiteInicial(Date date, int field) {
+
+        GregorianCalendar gc = new GregorianCalendar();
+        gc.setTime(date);
+        gc.set(GregorianCalendar.HOUR_OF_DAY, 0);
+        gc.clear(GregorianCalendar.MINUTE);
+        gc.clear(GregorianCalendar.SECOND);
+        gc.clear(GregorianCalendar.MILLISECOND);
+        
+        switch (field) {
+            case GregorianCalendar.YEAR:
+                gc.set(GregorianCalendar.MONTH, 0);
+            case GregorianCalendar.MONTH:
+                gc.set(GregorianCalendar.DAY_OF_MONTH, 1);
+        }
+        return gc.getTime();
     }
 
     @SuppressWarnings("unchecked")
@@ -53,8 +89,11 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         tabela = new javax.swing.JTable();
         bntNovo = new javax.swing.JButton();
-        btnAlterar = new javax.swing.JButton();
         btnExcluir = new javax.swing.JButton();
+        fim = new JDateChooser(defaultFormatDate, false);
+        inicio = new JDateChooser(defaultFormatDate, false);
+        bntNovo1 = new javax.swing.JButton();
+        btnExcluir1 = new javax.swing.JButton();
 
         setClosable(true);
         setIconifiable(true);
@@ -87,17 +126,6 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
             }
         });
 
-        btnAlterar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/fluxocaixa/imagens/alterar.png"))); // NOI18N
-        btnAlterar.setText("Alterar");
-        btnAlterar.setMaximumSize(new java.awt.Dimension(95, 27));
-        btnAlterar.setMinimumSize(new java.awt.Dimension(95, 27));
-        btnAlterar.setPreferredSize(new java.awt.Dimension(95, 27));
-        btnAlterar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAlterarActionPerformed(evt);
-            }
-        });
-
         btnExcluir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/fluxocaixa/imagens/excluir.png"))); // NOI18N
         btnExcluir.setText("Excluir");
         btnExcluir.setMaximumSize(new java.awt.Dimension(95, 27));
@@ -109,30 +137,74 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
             }
         });
 
+        fim.setName("dtProxima"); // NOI18N
+        fim.setPreferredSize(new java.awt.Dimension(150, 25));
+
+        inicio.setName("dtProxima"); // NOI18N
+        inicio.setPreferredSize(new java.awt.Dimension(150, 25));
+
+        bntNovo1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/fluxocaixa/imagens/pesquisar.png"))); // NOI18N
+        bntNovo1.setText("Pesquisar");
+        bntNovo1.setMaximumSize(new java.awt.Dimension(95, 27));
+        bntNovo1.setMinimumSize(new java.awt.Dimension(95, 27));
+        bntNovo1.setPreferredSize(new java.awt.Dimension(95, 27));
+        bntNovo1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bntNovo1ActionPerformed(evt);
+            }
+        });
+
+        btnExcluir1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/fluxocaixa/imagens/ajuda.png"))); // NOI18N
+        btnExcluir1.setText("Gerar Saldo");
+        btnExcluir1.setMaximumSize(new java.awt.Dimension(95, 27));
+        btnExcluir1.setMinimumSize(new java.awt.Dimension(95, 27));
+        btnExcluir1.setPreferredSize(new java.awt.Dimension(95, 27));
+        btnExcluir1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExcluir1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 826, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 826, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGroup(layout.createSequentialGroup()
                 .addGap(19, 19, 19)
                 .addComponent(bntNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(btnAlterar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(btnExcluir1, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(23, 23, 23)
+                .addComponent(inicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(fim, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(bntNovo1, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(32, 32, 32)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(fim, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(inicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(bntNovo1, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(bntNovo, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
-                    .addComponent(btnAlterar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnExcluir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(bntNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExcluir1, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         pack();
@@ -148,27 +220,6 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
         readJTable();
 
     }//GEN-LAST:event_bntNovoActionPerformed
-
-    private void btnAlterarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAlterarActionPerformed
-       /* if (tabela.getSelectedRow() != -1) {
-            OrigemProduto origemProduto = origemProdutoCon.getOrigemProduto((Integer) tabela.getValueAt(tabela.getSelectedRow(), 0));
-
-            NovoGeralForm janela = new NovoGeralForm("Origem", "Altera") {};
-            janela.setTitle("Alterar Origem Produto");
-            janela.setModal(true);
-            janela.setLocationRelativeTo(null);
-            janela.setOrigemProdutoAlterar(origemProduto);
-            janela.setVisible(true);
-
-            if (!janela.isVisible()) {
-                btnPesquisarActionPerformed(evt);
-            }
-
-        } else {
-            JOptionPane.showMessageDialog(null, "Selecione uma linha para alterar.", "Alteração de dados", JOptionPane.WARNING_MESSAGE);
-        }*/
-
-    }//GEN-LAST:event_btnAlterarActionPerformed
 
     private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
         if (tabela.getSelectedRow() != -1) {
@@ -186,6 +237,42 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(null, "Selecione uma linha para exluir.", "Exlcusão de dados", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnExcluirActionPerformed
+
+    private void bntNovo1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bntNovo1ActionPerformed
+        tabelaModelo = (DefaultTableModel) tabela.getModel();
+        tabelaModelo.setNumRows(0);
+        
+        List<Lancamento> lista = lancamentoDAO.buscarData(inicio.getDate(), fim.getDate());
+
+        for (Lancamento lancamento : lista) {
+            tabelaModelo.addRow(new Object[]{
+                lancamento.getIdLancamento(),
+                lancamento.getDescricao(),
+                lancamento.getValor(),
+                sdf.format(lancamento.getDtLancamento()),
+                lancamento.getMovimentacao()
+            });
+        }
+    }//GEN-LAST:event_bntNovo1ActionPerformed
+
+    private void btnExcluir1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluir1ActionPerformed
+        
+        List<Lancamento> lista = lancamentoDAO.buscarData(inicio.getDate(), fim.getDate());
+        
+        Double saldo = 0.0;
+        
+        for (Lancamento lancamento : lista) {
+            if(lancamento.getMovimentacao().startsWith("E")){
+                saldo += lancamento.getValor();
+            }else{
+                saldo += (-lancamento.getValor());
+            }
+        }
+        
+        JOptionPane.showMessageDialog(null, "Seu saldo do período é de: \nR$" + saldo, "Saldo do período", JOptionPane.INFORMATION_MESSAGE);
+        
+        
+    }//GEN-LAST:event_btnExcluir1ActionPerformed
 
     private void tamanho_colunas() {
         DefaultTableCellRenderer rendererCentro = new DefaultTableCellRenderer();
@@ -220,8 +307,11 @@ public class LancamentoForm extends javax.swing.JInternalFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bntNovo;
-    private javax.swing.JButton btnAlterar;
+    private javax.swing.JButton bntNovo1;
     private javax.swing.JButton btnExcluir;
+    private javax.swing.JButton btnExcluir1;
+    com.toedter.calendar.JDateChooser fim;
+    com.toedter.calendar.JDateChooser inicio;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tabela;
     // End of variables declaration//GEN-END:variables

@@ -227,6 +227,21 @@ public class NovoLancamentoForm extends javax.swing.JDialog {
             return;
         }
         
+        if(txfValor.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Os campos obrigatórios(*) devem ser preenchidos.", "", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if(cbxMovimentacao.getSelectedItem() == null || cbxTpLancamento.getSelectedItem() == null || cbxTpPagamento.getSelectedItem() == null){
+            JOptionPane.showMessageDialog(null, "Os campos obrigatórios(*) devem ser preenchidos.", "", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if(dtcLancamento.getDate() == null){
+            JOptionPane.showMessageDialog(null, "Os campos obrigatórios(*) devem ser preenchidos.", "", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         Lancamento lancamento = new Lancamento(
                 txfDescricao.getText().toUpperCase(),
                 new Double(txfValor.getText()),
@@ -234,11 +249,17 @@ public class NovoLancamentoForm extends javax.swing.JDialog {
                 ((TipoLancamento)cbxTpLancamento.getSelectedItem()).getIdTipoLancamento(),
                 ((TipoPagamento)cbxTpPagamento.getSelectedItem()).getIdTipoPagamento(),
                 dtcLancamento.getDate(),
-                22 //usuario
+                new Integer(System.getProperty("idUsuario"))
         );
         
+        if(acao.equals("I")){
+            lancamentoDAO.inserir(lancamento);
+        }else{
+            lancamento.setIdLancamento(new Integer(txfCodigo.getText()));
+            lancamentoDAO.atualizar(lancamento);
+        }
         
-        
+        dispose();
         
     }//GEN-LAST:event_bntGravarActionPerformed
     

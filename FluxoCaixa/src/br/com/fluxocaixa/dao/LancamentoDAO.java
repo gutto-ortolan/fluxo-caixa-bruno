@@ -17,14 +17,16 @@ import java.util.logging.Logger;
 public class LancamentoDAO implements InterfaceDAO<Lancamento> {
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat sdfd = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     @Override
     public void inserir(Lancamento lancamento) {
         try {
-            String query = "INSERT INTO lancamento VALUES (null, '" + lancamento.getDescricao() + "', '" + lancamento.getValor() + "', "
-                    + lancamento.getMovimentacao() + ", " + lancamento.getIdTipoLancamento() + ", " + lancamento.getIdTipoPagamento() + ", '"+sdf.format(lancamento.getDtLancamento()) + ", " + lancamento.getIdUsuario()+"' )";
+            String query = "INSERT INTO lancamento VALUES (null, '" + lancamento.getDescricao() + "', '" + lancamento.getValor() + "', '"
+                    + lancamento.getMovimentacao() + "', " + lancamento.getIdTipoLancamento() + ", " + lancamento.getIdTipoPagamento() + ", '"+sdf.format(lancamento.getDtLancamento()) + "', " + lancamento.getIdUsuario()+" )";
             UtilBD.alterarBD(query);
         } catch (SQLException e) {
+            e.printStackTrace();
             System.err.println("Não foi possível inserir a pessoa no banco!");
         }
     }
@@ -135,5 +137,47 @@ public class LancamentoDAO implements InterfaceDAO<Lancamento> {
         }
         return null;
     }
+    
+    public List<Lancamento> buscarData(Date inicio, Date fim) {
+        try {
+            Connection bd = UtilBD.getConexao();
+            Statement stm = bd.createStatement();
+            String query = "SELECT * FROM lancamento WHERE dtLancamento between '"+sdfd.format(inicio)+"' and '"+sdfd.format(fim)+"' and idUsuario = "+new Integer(System.getProperty("idUsuario"));
 
+            try (ResultSet rs = stm.executeQuery(query)) {
+
+                List<Lancamento> lancamentos = new ArrayList<Lancamento>();
+
+                while (rs.next()) {
+                    
+                    String data = rs.getString("dtLancamento");
+                    
+                    Lancamento lancamento = new Lancamento(
+                            rs.getInt("idLancamento"),
+                            rs.getString("descricao"),
+                            rs.getDouble("valor"),
+                            rs.getString("movimentacao"),
+                            rs.getInt("idTipoLancamento"),
+                            rs.getInt("idTipoPagamento"),
+                            sdf.parse(data),
+                            rs.getInt("idUsuario")
+                    );
+                    
+                    lancamentos.add(lancamento);
+                }
+                
+                return lancamentos;
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                System.err.println("Falha ao tentar obter o conjunto resultado!");
+            } catch (ParseException ex) {
+                Logger.getLogger(LancamentoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Não foi possível buscar os dados do banco!");
+        }
+        return null;
+    }
 }
